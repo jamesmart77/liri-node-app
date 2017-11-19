@@ -1,0 +1,19 @@
+{
+  "name": "liri-node-app",
+  "version": "1.0.0",
+  "description": "reference the github README.md",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamesmart77/liri-node-app.git"
+  },
+  "author": "James Martineau",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jamesmart77/liri-node-app/issues"
+  },
+  "homepage": "https://github.com/jamesmart77/liri-node-app#readme"
+}
