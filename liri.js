@@ -1,16 +1,13 @@
-var Spotify = require('node-spotify-api');
-var Twitter = require('twitter');
-var moment = require('moment');
 var inquirer = require("inquirer");
+var fs = require("fs");
 
 var apiKeys = require("./secrets/apiKeys.js");
-
-var spotify = new Spotify({
-    id: apiKeys.spotifyKeys.client_id,
-    secret: apiKeys.spotifyKeys.client_secret
-});
+var twitter = require("./twitter.js");
+var spotify = require("./spotify.js");
+var omdb = require("./omdb.js");
 
 inquirer
+    // prompt user with initial options
     .prompt([
 
         {
@@ -21,49 +18,53 @@ inquirer
         }
     ])
     .then(function (inquirerResponse) {
-
+        //invoke twitter function
         if (inquirerResponse.userAction === "Get Tweets") {
-            var client = new Twitter({
-                consumer_key: apiKeys.twitterKeys.consumer_key,
-                consumer_secret: apiKeys.twitterKeys.consumer_secret,
-                access_token_key: apiKeys.twitterKeys.access_token_key,
-                access_token_secret: apiKeys.twitterKeys.access_token_secret
-            });
+            twitter.getTweets(apiKeys);
+        }
 
-            var params = {
-                count: 20
-            };
+        //if search spotify then prompt for song title
+        if (inquirerResponse.userAction === "Search Spotify") {
+            inquirer
+                .prompt([{
+                    type: "input",
+                    message: "What song are you searching for?",
+                    name: "spotifySong"
+                }])
+                .then(function (inquirerSpotifyResponse) {
+                    //call function in spotify.js
+                    //arguments: apiKeys, random.txt song, song limit, DON'T print full song url
+                    spotify.searchSong(apiKeys, inquirerSpotifyResponse.spotifySong, 10, false);
 
-            client.get('statuses/user_timeline', params, function (error, tweets, response) {
-                if (error) {
-                    return console.log('Error occurred: ' + error);
-                }
+                })
+        }
 
-                //console.log("Response code: " + response);
-                tweets.forEach(element => {
-                    console.log("---------------------------")
-                    console.log("Posted: " + moment(element.created_at).format("dddd MM-DD-YYYY hh:mm a"));
-                    console.log(element.text);
-                    console.log("---------------------------")
-        
+        if (inquirerResponse.userAction === "Search Movies") {
+            //if search Movies then prompt for movie title
+            inquirer
+                .prompt([{
+                    type: "input",
+                    message: "What movie are you searching for?",
+                    name: "movieTitle"
+                }])
+                .then(function (inquirerMovieResponse) {
+                    omdb.searchMovie(inquirerMovieResponse.movieTitle);
+
+                })
+                .catch(function (err) {
+                    console.log(err);
                 });
+        }
 
-            });
+        //if user selects Surprise Me choice the song in the Random.txt file will be consoled
+        if (inquirerResponse.userAction === "Surprise Me!") {
+
+            fs.readFile("random.txt", "utf8", function (error, data) {
+                if (error) throw error
+
+                //arguments: apiKeys, random.txt song, song limit, print full song url
+                spotify.searchSong(apiKeys, data, 1, true);
+
+            })
         }
     });
-
-
-
-// console.log("id: " + spotify.credentials.id + "\nsecret: " + spotify.credentials.secret)
-
-// spotify
-//     .search({
-//         type: 'track',
-//         query: 'All the Small Things'
-//     })
-//     .then(function (response) {
-//         console.log(response);
-//     })
-//     .catch(function (err) {
-//         console.log(err);
-//     });
